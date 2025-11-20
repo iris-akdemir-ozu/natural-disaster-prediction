@@ -147,7 +147,8 @@ def postprocess_prediction(prediction, original_size=None):
         'flood_percentage': float(flood_percentage),
         'max_confidence': float(max_confidence),
         'avg_confidence': float(avg_confidence),
-        'flood_detected': flood_percentage > 1.0
+        # FIX: Explicitly convert numpy bool to python bool
+        'flood_detected': bool(flood_percentage > 1.0) 
     }
 
 
