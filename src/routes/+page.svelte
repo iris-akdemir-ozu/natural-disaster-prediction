@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { fade, fly } from 'svelte/transition';
 	import UploadSection from '$lib/components/upload-section.svelte';
 	import MapViewer from '$lib/components/map-viewer.svelte';
 	import ResultsPanel from '$lib/components/results-panel.svelte';
@@ -54,128 +54,127 @@
 	}
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
-	<!-- Header -->
-	<header class="border-b border-border bg-background/80 backdrop-blur-sm">
-		<div class="container mx-auto px-4 py-6">
+<div class="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50 via-slate-50 to-white text-slate-800 font-sans selection:bg-blue-100">
+	
+	<header class="sticky top-0 z-50 border-b border-white/40 bg-white/70 backdrop-blur-md shadow-sm">
+		<div class="container mx-auto px-6 py-4">
 			<div class="flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600">
-						<svg
-							class="h-7 w-7 text-white"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
-							/>
+				<div class="flex items-center gap-4">
+					<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 shadow-blue-200 shadow-lg">
+						<svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
 						</svg>
 					</div>
 					<div>
-						<h1 class="text-2xl font-bold text-foreground">Flood Segmentation System</h1>
-						<p class="text-sm text-muted-foreground">AI-Powered Natural Disaster Prediction</p>
+						<h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-600">FloodGuard AI</h1>
+						<p class="text-xs text-slate-500 font-medium tracking-wide uppercase">Disaster Segmentation System</p>
 					</div>
 				</div>
-				<div class="flex items-center gap-2">
-					<div
-						class="flex items-center gap-2 rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-700"
-					>
-						<span class="h-2 w-2 rounded-full bg-green-600"></span>
-						Online
+				
+				<div class="hidden md:flex items-center gap-3 px-4 py-2 rounded-full bg-white/50 border border-white shadow-sm backdrop-blur-sm">
+					<div class="relative flex h-3 w-3">
+						<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+						<span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
 					</div>
+					<span class="text-xs font-semibold text-slate-600">System Online</span>
 				</div>
 			</div>
 		</div>
 	</header>
 
-	<!-- Main Content -->
-	<main class="container mx-auto px-4 py-8">
-		<div class="grid gap-6 lg:grid-cols-3">
-			<!-- Left Panel - Upload & Controls -->
-			<div class="space-y-6 lg:col-span-1">
-				<UploadSection
-					{selectedFile}
-					{isProcessing}
-					onfileselect={handleFileSelected}
-					onpredict={handlePredict}
-					onreset={handleReset}
-				/>
+	<main class="container mx-auto px-6 py-10">
+		
+		<div class="grid gap-8 lg:grid-cols-12">
+			
+			<div class="lg:col-span-4 space-y-6" in:fly={{ x: -20, duration: 600, delay: 200 }}>
+				
+				<div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden p-6">
+					<h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+						<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+						Input Data
+					</h2>
+					
+					<UploadSection
+						{selectedFile}
+						{isProcessing}
+						onfileselect={handleFileSelected}
+						onpredict={handlePredict}
+						onreset={handleReset}
+					/>
+				</div>
 
 				{#if $predictionStore.prediction}
-					<ResultsPanel prediction={$predictionStore.prediction} />
+					<div in:fly={{ y: 20, duration: 500 }} class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden p-6">
+						<h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+							<svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+							Analysis Report
+						</h2>
+						<ResultsPanel prediction={$predictionStore.prediction} />
+					</div>
 				{/if}
 			</div>
 
-			<!-- Right Panel - Map & Visualization -->
-			<div class="lg:col-span-2">
-				<MapViewer {uploadedImageUrl} prediction={$predictionStore.prediction} />
+			<div class="lg:col-span-8 h-full" in:fly={{ x: 20, duration: 600, delay: 300 }}>
+				<div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden h-[600px] relative group">
+					<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 z-10"></div>
+					
+					{#if !uploadedImageUrl}
+						<div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
+							<svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+							<p class="text-lg font-medium">Map Visualization</p>
+							<p class="text-sm">Upload an image to view flood segmentation overlay</p>
+						</div>
+					{/if}
+					
+					<div class="h-full w-full">
+						<MapViewer {uploadedImageUrl} prediction={$predictionStore.prediction} />
+					</div>
+				</div>
 			</div>
 		</div>
 
-		<!-- Info Section -->
-		<div class="mt-12 grid gap-6 md:grid-cols-3">
-			<div class="rounded-xl border border-border bg-card p-6">
-				<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-					<svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-						/>
+		<div class="mt-16 grid gap-6 md:grid-cols-3">
+			<div class="group rounded-2xl bg-white p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100">
+				<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
 					</svg>
 				</div>
-				<h3 class="mb-2 font-semibold text-card-foreground">Upload Image</h3>
-				<p class="text-sm text-muted-foreground">
-					Upload satellite or aerial imagery to analyze flood risk and affected areas.
+				<h3 class="mb-2 text-lg font-bold text-slate-800">Upload Imagery</h3>
+				<p class="text-sm text-slate-500 leading-relaxed">
+					Support for high-resolution satellite and aerial imagery. Our system automatically pre-processes your data for optimal results.
 				</p>
 			</div>
 
-			<div class="rounded-xl border border-border bg-card p-6">
-				<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100">
-					<svg class="h-6 w-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-						/>
+			<div class="group rounded-2xl bg-white p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100">
+				<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 					</svg>
 				</div>
-				<h3 class="mb-2 font-semibold text-card-foreground">AI Analysis</h3>
-				<p class="text-sm text-muted-foreground">
-					U-Net deep learning model analyzes the image and identifies flood-affected regions.
+				<h3 class="mb-2 text-lg font-bold text-slate-800">Deep Learning Analysis</h3>
+				<p class="text-sm text-slate-500 leading-relaxed">
+					Powered by a custom-trained U-Net architecture that identifies water bodies with high precision and ignores false positives.
 				</p>
 			</div>
 
-			<div class="rounded-xl border border-border bg-card p-6">
-				<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-100">
-					<svg class="h-6 w-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-						/>
+			<div class="group rounded-2xl bg-white p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100">
+				<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 				</div>
-				<h3 class="mb-2 font-semibold text-card-foreground">View Results</h3>
-				<p class="text-sm text-muted-foreground">
-					Interactive map visualization shows flood zones with risk levels and confidence scores.
+				<h3 class="mb-2 text-lg font-bold text-slate-800">Risk Assessment</h3>
+				<p class="text-sm text-slate-500 leading-relaxed">
+					Receive instant feedback on flood severity. The system calculates the percentage of flooded area and assigns a critical risk level.
 				</p>
 			</div>
 		</div>
 	</main>
 
-	<!-- Footer -->
-	<footer class="mt-16 border-t border-border bg-background/50 py-8">
-		<div class="container mx-auto px-4 text-center text-sm text-muted-foreground">
-			<p>Flood Segmentation System powered by U-Net Deep Learning</p>
-			<p class="mt-2">For educational and research purposes</p>
+	<footer class="border-t border-slate-200 bg-slate-50 py-12">
+		<div class="container mx-auto px-6 text-center">
+			<p class="text-sm text-slate-400 font-medium">© 2025 FloodGuard System. Powered by TensorFlow & SvelteKit.</p>
 		</div>
 	</footer>
 </div>
