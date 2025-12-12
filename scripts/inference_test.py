@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 # Configuration
-MODEL_PATH = "../models/flood_segmentation_model.h5"
+MODEL_PATH = "models/flood_segmentation_model.h5"
 IMG_HEIGHT = 256
 IMG_WIDTH = 256
 CONFIDENCE_THRESHOLD = 0.5
