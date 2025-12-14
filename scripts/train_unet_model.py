@@ -14,13 +14,13 @@ from sklearn.model_selection import train_test_split
 np.random.seed(42)
 tf.random.set_seed(42)
 
-# ================= AYARLAR =================
+# ================= SETTINGS =================
 IMG_HEIGHT = 256
 IMG_WIDTH = 256
 IMG_CHANNELS = 3
-NUM_CLASSES = 5  # xView2 verisi için sınıf sayısı (0:Yok, 1-4: Hasar Seviyeleri)
+NUM_CLASSES = 5  # Number of classes for xView2 data (0:Background, 1-4: Damage Levels)
 BATCH_SIZE = 16
-EPOCHS = 50
+EPOCHS = 10
 LEARNING_RATE = 1e-4
 
 DATASET_PATH = "data/flood_dataset"
@@ -89,21 +89,21 @@ def load_image(image_path):
 
 def load_mask(mask_path):
     """
-    Maske Yükleme (Multi-Class için Güncellendi)
-    - 255'e BÖLMÜYORUZ (Sınıf ID'leri kaybolmasın diye)
-    - One-Hot Encoding yapıyoruz.
+    Mask Loading (Updated for Multi-Class)
+    - DO NOT divide by 255 (to preserve Class IDs)
+    - Perform One-Hot Encoding.
     """
     mask = tf.io.read_file(mask_path)
     mask = tf.image.decode_png(mask, channels=1)
     
-    # Piksel değerlerini bozmadan yeniden boyutlandır (Nearest Neighbor önemli!)
+    # Resize without changing pixel values (Nearest Neighbor is important!)
     mask = tf.image.resize(mask, [IMG_HEIGHT, IMG_WIDTH], method='nearest')
     
-    # Sınıf numaraları integer olmalı
+    # Class numbers must be integer
     mask = tf.cast(mask, tf.int32)
     
-    # One-Hot Encoding (Örn: 2 -> [0,0,1,0,0])
-    # Çıktı şekli: (256, 256, 1, 5) -> Squeeze ile (256, 256, 5) yapıyoruz
+    # One-Hot Encoding (e.g., 2 -> [0,0,1,0,0])
+    # Output shape: (256, 256, 1, 5) -> Squeeze to make it (256, 256, 5)
     mask = tf.one_hot(mask, NUM_CLASSES)
     mask = tf.squeeze(mask, axis=2) 
     
@@ -119,7 +119,7 @@ def dice_loss(y_true, y_pred):
     return 1 - dice_coefficient(y_true, y_pred)
 
 def combined_loss(y_true, y_pred):
-    # Binary Crossentropy -> Categorical Crossentropy olarak değişti
+    # Changed from Binary Crossentropy to Categorical Crossentropy
     cce = tf.keras.losses.categorical_crossentropy(y_true, y_pred)
     return cce + dice_loss(y_true, y_pred)
 
@@ -136,7 +136,7 @@ def create_dataset(image_paths, mask_paths, batch_size=BATCH_SIZE, augment=False
         mask = load_mask(mask_path)
         return image, mask
     
-    # Basitleştirilmiş dataset pipeline (Hata riskini azaltmak için paralelliği kapattık)
+    # Simplified dataset pipeline (Disabled parallelism to reduce error risk)
     dataset = tf.data.Dataset.from_tensor_slices((image_paths, mask_paths))
     dataset = dataset.map(load_data, num_parallel_calls=1) 
     dataset = dataset.batch(batch_size)
@@ -149,20 +149,20 @@ def visualize_predictions(model, test_dataset, num_samples=3):
     for idx, (images, masks) in enumerate(test_dataset.take(1)):
         predictions = model.predict(images)
         for i in range(min(num_samples, len(images))):
-            # Orijinal
+            # Original
             plt.subplot(num_samples, 3, i * 3 + 1)
             plt.imshow(images[i])
             plt.title('Original')
             plt.axis('off')
             
-            # Gerçek Maske (One-hot'tan geri çeviriyoruz göstermek için)
+            # True Mask (Converting back from one-hot for display)
             true_mask = tf.argmax(masks[i], axis=-1)
             plt.subplot(num_samples, 3, i * 3 + 2)
             plt.imshow(true_mask, cmap='jet', vmin=0, vmax=NUM_CLASSES-1)
             plt.title('True Mask')
             plt.axis('off')
             
-            # Tahmin
+            # Prediction
             pred_mask = tf.argmax(predictions[i], axis=-1)
             plt.subplot(num_samples, 3, i * 3 + 3)
             plt.imshow(pred_mask, cmap='jet', vmin=0, vmax=NUM_CLASSES-1)
@@ -178,28 +178,28 @@ def main():
     print(f"Multi-Class ({NUM_CLASSES}) U-Net Training")
     print("=" * 50)
     
-    # Klasör Kontrolü
+    # Folder Check
     if not os.path.exists(IMAGES_PATH) or not os.listdir(IMAGES_PATH):
         print("❌ Dataset not found!")
         return
 
-    # Dosyaları Yükle
+    # Load Files
     image_files = sorted([os.path.join(IMAGES_PATH, f) for f in os.listdir(IMAGES_PATH) if f.endswith(('.png', '.jpg', '.jpeg'))])
     mask_files = sorted([os.path.join(MASKS_PATH, f) for f in os.listdir(MASKS_PATH) if f.endswith(('.png', '.jpg', '.jpeg'))])
     
-    # Eşleşme Kontrolü
-    # Not: xView2 datasetinde maske isimleri bazen farklı olabilir, burada basit sıralama varsayıyoruz.
-    # Eğer prepare_dataset.py kullandıysanız isimler zaten aynıdır.
+    # Match Check
+    # Note: In xView2 dataset mask names might differ, assuming simple sorting here.
+    # If prepare_dataset.py was used, names should be identical.
     
     print(f"Images: {len(image_files)} | Masks: {len(mask_files)}")
     
-    # Eğitim/Test Ayrımı
+    # Train/Test Split
     train_images, val_images, train_masks, val_masks = train_test_split(image_files, mask_files, test_size=0.2, random_state=42)
     
     train_dataset = create_dataset(train_images, train_masks)
     val_dataset = create_dataset(val_images, val_masks)
     
-    # Model Kurulumu
+    # Model Setup
     model = build_unet_model()
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=LEARNING_RATE),
@@ -207,7 +207,7 @@ def main():
         metrics=[dice_coefficient, iou_metric, 'accuracy']
     )
     
-    # Eğitim
+    # Training
     history = model.fit(
         train_dataset,
         validation_data=val_dataset,
