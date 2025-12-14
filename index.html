@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natural Disaster Prediction</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f0f2f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        .control-panel { margin-bottom: 20px; padding: 15px; background: #e9ecef; border-radius: 8px; display: flex; gap: 10px; align-items: center; }
+        #map { height: 500px; width: 100%; border-radius: 8px; border: 2px solid #ddd; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #2980b9; }
+        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        #results { margin-top: 15px; padding: 10px; border-left: 4px solid #3498db; background: #f8f9fa; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Disaster Prediction System</h1>
+    
+    <div class="control-panel">
+        <input type="file" id="imageInput" accept="image/*">
+        <button id="analyzeBtn" class="btn" onclick="analyzeImage()">Analyze</button>
+    </div>
+
+    <div id="results">
+        <h3 style="margin-top:0">Results:</h3>
+        <p>Risk Level: <b id="riskLevel">-</b></p>
+        <p>Disaster Ratio: <b id="floodPercent">-</b>%</p>
+    </div>
+
+    <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // 1. Haritayı Başlat
+    var map = L.map('map').setView([0, 0], 2);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    var currentOverlay = null;
+
+    async function analyzeImage() {
+        const fileInput = document.getElementById('imageInput');
+        const btn = document.getElementById('analyzeBtn');
+        const resultsDiv = document.getElementById('results');
+
+        if (fileInput.files.length === 0) {
+            alert("Please choose an image first!");
+            return;
+        }
+
+        // Yükleniyor durumu
+        btn.textContent = "Loading...";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+
+        try {
+            // 2. Backend'e İstek At (Python Flask)
+            const response = await fetch('http://localhost:5000/api/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("Server error!");
+
+            const data = await response.json();
+
+            // 3. Sonuçları Yazdır
+            resultsDiv.style.display = 'block';
+            document.getElementById('riskLevel').innerText = data.prediction.risk_level;
+            document.getElementById('riskLevel').style.color = getRiskColor(data.prediction.risk_level);
+            document.getElementById('floodPercent').innerText = data.prediction.flood_percentage.toFixed(2);
+
+            // 4. Haritaya Overlay Ekle
+            if (currentOverlay) {
+                map.removeLayer(currentOverlay);
+            }
+
+            // Gelen resim base64 formatındadır, bunu haritaya koyuyoruz
+            // Not: Basitlik için rastgele koordinatlara koyuyoruz.
+            // Gerçekte resmin koordinat verisi (GeoTIFF) olması gerekir.
+            var bounds = [[-40, -40], [40, 40]]; 
+            
+            // Backend'den gelen 'overlay' (kırmızı maske + orijinal resim)
+            var imageUrl = data.masks.overlay; 
+
+            currentOverlay = L.imageOverlay(imageUrl, bounds).addTo(map);
+            map.fitBounds(bounds);
+
+        } catch (error) {
+            console.error(error);
+            alert("Error has been occured");
+        } finally {
+            btn.textContent = "Analyze";
+            btn.disabled = false;
+        }
+    }
+
+    function getRiskColor(level) {
+        if(level === 'Critical') return 'red';
+        if(level === 'High') return 'orange';
+        if(level === 'Medium') return '#f1c40f';
+        return 'green';
+    }
+</script>
+
+</body>
+</html>
