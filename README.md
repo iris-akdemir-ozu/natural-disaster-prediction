@@ -43,12 +43,24 @@ The model was trained on the xView2 (xBD) dataset, a large-scale dataset for bui
 - Python 3.8 or higher
 - pip package manager
 
+**Dataset Setup:**
+The project uses the xView2 (xBD) dataset. Due to upload size limitations, the dataset images are not included in this repository.
+
+To run the training script:
+1. Download the "Challenge Training Set" from the official xView2 website: https://xview2.org/dataset
+2. Extract the files into the `data/` directory in this project folder.
+3. Run `python scripts/json_to_mask.py` to process the raw labels into masks.
+
 After cloning the repository: 
 
 **1. Install Dependencies**
 pip install -r requirements.txt
 
-**2. Model Generation**
+**2. Dataset Preparation**
+Execute the following command to process the raw labels into masks (change the directories in the code before running):
+python scripts/json_to_mask.py
+
+**3. Model Generation**
 Execute the following command to train the model and save the weights:
 python scripts/train_unet_model.py
 
