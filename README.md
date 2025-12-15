@@ -54,22 +54,22 @@ To run the training script:
 After cloning the repository: 
 
 **1. Install Dependencies**
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 **2. Dataset Preparation**
 Execute the following command to process the raw labels into masks (change the directories in the code before running):
-python scripts/json_to_mask.py
+`python scripts/json_to_mask.py`
 
 **3. Model Generation**
 Execute the following command to train the model and save the weights:
-python scripts/train_unet_model.py
+`python scripts/train_unet_model.py`
 
 (This script will utilize the data processing pipeline to train the U-Net model and save the output to the models/ directory.)
 
 **Usage**
 
 1. Start the Backend Server:
-   python backend/app.py
+   `python backend/app.py`
    (The server will initialize at http://localhost:5000)
 
 2. Access the Interface:
